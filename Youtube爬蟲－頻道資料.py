@@ -6,6 +6,9 @@ Created on Sat May 29 17:47:01 2022
 版權屬於「楊超霆」所有，若有疑問，可聯絡ivanyang0606@gmail.com
 第六章 Youtube中尋找KOL夥伴
 Youtube爬蟲－頻道資料
+
+維修紀錄：
+2023/5/4 因youtube網站調整，會導致抓不到影片的連結，因此重新修正了影片的ID標籤
 """
 # selenium
 from selenium import webdriver
@@ -77,7 +80,8 @@ for yChannel in youtuber:
     getlooking = getlooking.replace(',','')
     looking.append(int(getlooking))
 
-    description.append(driver.find_element(by=By.ID, value='description').text) # 存文案
+    # 2023/5/4 發現description這個ID標籤抓下來竟然不只一個...重新指定了正確的資料位置
+    description.append(driver.find_elements(by=By.ID, value='description')[1].text) # 存文案
 
     location.append(driver.find_element(by=By.XPATH, value='//div[@id="details-container"]/table/tbody/tr[2]/td[2]').text) # 存國家位置
 
@@ -120,7 +124,8 @@ for yChannel in youtuber:
         time.sleep(2)
 
     containar = [] # 結果整理成list
-    for link in  driver.find_elements(by=By.ID, value='video-title'):
+    # 2023/5/4 因youtube網站調整，會導致抓不到影片的連結，因此重新修正了影片的ID標籤
+    for link in driver.find_elements(by=By.ID, value='video-title-link'):
         containar.append(link.get_attribute('href'))
     videolink.append(containar)
 
