@@ -9,6 +9,7 @@ Youtube爬蟲－頻道資料
 
 維修紀錄：
 2023/5/4 因youtube網站調整，會導致抓不到影片的連結，因此重新修正了影片的ID標籤
+2023/5/25 修復影片爬到none的問題，以及將滾動頁面改成動態偵測是否到底部的方式
 """
 # selenium
 from selenium import webdriver
@@ -32,13 +33,7 @@ driver = webdriver.Chrome(service=service, chrome_options=chrome_options)
 time.sleep(5)
 
 # 想爬取的youtube
-youtuber = ['c/thisgroupofpeople', # 這群人
-            'channel/UCfMiXMUBXxWiVrcXw2GV92g', # 燥咖
-            'user/TheN10414', # 又仁
-            'channel/UCW_0KHu_E9tH9_WVmrFactg', # 各種同學
-            'user/KEVIN0204660', # 反骨男孩
-            'user/jasonjason1124', # How Fun
-            'user/dionisiojian' # 喬瑟夫
+youtuber = ['@TheKellyYang'
             ]
 
 #準備容器
@@ -119,14 +114,26 @@ for yChannel in youtuber:
     time.sleep(10)
 
     # 滾動頁面
-    for scroll in range(20):
-        driver.execute_script('window.scrollBy(0,1000)')
-        time.sleep(2)
+    # 2023/5/25 有些youtuber的影片非常多，因此滾動頁面的次數不能寫死，改以動態方式確保滾到最下面
+    doit = True
+    counter = len(driver.find_elements(by=By.ID, value='video-title-link'))
+    while doit:
+        driver.execute_script('window.scrollBy(0,5000)')
+        time.sleep(5)
+        # 判斷是否滾到底了
+        if counter < len(driver.find_elements(by=By.ID, value='video-title-link')):
+            counter = len(driver.find_elements(by=By.ID, value='video-title-link'))
+        else:
+            doit = False
+            print('已經到頁面最底部')
+
 
     containar = [] # 結果整理成list
     # 2023/5/4 因youtube網站調整，會導致抓不到影片的連結，因此重新修正了影片的ID標籤
     for link in driver.find_elements(by=By.ID, value='video-title-link'):
-        containar.append(link.get_attribute('href'))
+        # 2023/5/25 影片最後會爬到None，須排除否則會造成下個爬取影片內容的步驟出錯
+        if link.get_attribute('href') != None:
+            containar.append(link.get_attribute('href'))
     videolink.append(containar)
 
 dic = {
